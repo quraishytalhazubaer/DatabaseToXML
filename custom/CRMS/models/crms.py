@@ -32,5 +32,31 @@ class MyModel(models.Model):
         # Create the XML tree
         tree = ET.ElementTree(root)
 
-        # Save the XML tree to a file
-        tree.write('/home/test/Talha/newodoo/custom/CRMS/static/hello.xml', encoding='utf-8', xml_declaration=True)
+        # Define the path and filename for the XML file
+        xml_file_path = '/home/test/Talha/newodoo/custom/CRMS/static/hello.xml'
+
+        # Save the XML tree to the file
+        tree.write(xml_file_path, encoding='utf-8', xml_declaration=True)
+
+        # Prepare the file for download
+        file_data = open(xml_file_path, 'rb').read()
+        file_name = 'hello.xml'
+
+        # Remove the XML file
+        os.remove(xml_file_path)
+
+        # Create a new attachment for the XML file
+        attachment = self.env['ir.attachment'].create({
+            'name': file_name,
+            'datas': base64.b64encode(file_data),
+            'mimetype': 'application/xml',
+            'res_model': self._name,
+            'res_id': self.id,
+        })
+
+        # Return the action to download the attachment
+        return {
+            'type': 'ir.actions.act_url',
+            'url': '/web/content/%s?download=true' % attachment.id,
+            'target': 'new'
+        }
